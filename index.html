@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Ormind — Entrevista de Descoberta</title>
+<style>
+:root {
+  --purple: #534AB7; --purple-light: #EEEDFE; --purple-mid: #7F77DD;
+  --teal: #1D9E75; --teal-light: #E1F5EE; --teal-dark: #0F6E56;
+  --coral: #D85A30; --coral-light: #FAECE7;
+  --amber: #EF9F27; --amber-light: #FAEEDA; --amber-dark: #854F0B;
+  --gray-50: #F8F7F4; --gray-100: #F1EFE8; --gray-200: #D3D1C7;
+  --gray-400: #888780; --gray-600: #5F5E5A; --gray-800: #2C2C2A;
+  --text: #1a1916; --text-muted: #5F5E5A; --text-hint: #888780;
+  --border: #E2E0D6; --border-strong: #C5C3B8;
+  --white: #FFFFFF; --bg: #F8F7F4;
+  --radius: 10px; --radius-sm: 6px;
+  --shadow: 0 1px 4px rgba(0,0,0,0.07);
+  --shadow-md: 0 2px 12px rgba(0,0,0,0.09);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+a { color: var(--purple); }
+
+/* Layout */
+.layout { display: flex; min-height: 100vh; }
+.sidebar { width: 300px; flex-shrink: 0; background: var(--white); border-right: 1px solid var(--border); padding: 28px 24px; position: sticky; top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+.main { flex: 1; padding: 40px 32px; max-width: 780px; }
+
+/* Logo / header */
+.logo { font-size: 17px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+.logo span { color: var(--purple); }
+.session-label { font-size: 11px; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 2px; }
+
+/* Profile card */
+.profile-card { background: var(--gray-50); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.profile-name-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--purple-light); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--purple); flex-shrink: 0; }
+.profile-name { font-size: 14px; font-weight: 500; color: var(--text); }
+.profile-company { font-size: 12px; color: var(--text-muted); }
+
+/* Score ring */
+.score-section { text-align: center; padding: 8px 0 4px; }
+.ring-wrap { position: relative; width: 80px; height: 80px; margin: 0 auto 8px; }
+.ring-wrap svg { transform: rotate(-90deg); }
+.ring-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+.ring-val { font-size: 22px; font-weight: 600; color: var(--text); line-height: 1; }
+.ring-sub { font-size: 9px; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.06em; }
+.score-label-main { font-size: 12px; color: var(--text-muted); }
+
+/* Dimension bars */
+.dims { display: flex; flex-direction: column; gap: 8px; }
+.dim-row { }
+.dim-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.dim-name { font-size: 11px; color: var(--text-muted); }
+.dim-val { font-size: 11px; font-weight: 500; color: var(--text); }
+.dim-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.dim-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+/* POC signal */
+.poc-signal { border-radius: var(--radius-sm); padding: 10px 12px; font-size: 12px; line-height: 1.5; }
+.poc-signal.open { background: var(--teal-light); color: var(--teal-dark); border: 1px solid #9FE1CB; }
+.poc-signal.watch { background: var(--amber-light); color: var(--amber-dark); border: 1px solid #FAC775; }
+.poc-signal.cold { background: var(--coral-light); color: #993C1D; border: 1px solid #F0997B; }
+.poc-signal.neutral { background: var(--gray-100); color: var(--text-muted); border: 1px solid var(--border); }
+.poc-signal-title { font-weight: 600; margin-bottom: 2px; }
+
+/* Progress */
+.progress-section { }
+.progress-header { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-hint); margin-bottom: 6px; }
+.progress-track { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--purple-mid); border-radius: 2px; transition: width 0.4s ease; }
+
+/* Timeline nav */
+.timeline { display: flex; flex-direction: column; gap: 2px; }
+.tl-section { }
+.tl-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-hint); padding: 6px 8px 3px; }
+.tl-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--radius-sm); cursor: default; }
+.tl-item.answered { cursor: pointer; }
+.tl-item.answered:hover { background: var(--gray-100); }
+.tl-item.current { background: var(--purple-light); }
+.tl-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--border-strong); }
+.tl-item.answered .tl-dot { background: var(--teal); }
+.tl-item.current .tl-dot { background: var(--purple); }
+.tl-text { font-size: 11px; color: var(--text-muted); line-height: 1.3; }
+.tl-item.answered .tl-text { color: var(--text-muted); }
+.tl-item.current .tl-text { color: var(--purple); font-weight: 500; }
+
+/* Main form */
+.form-header { margin-bottom: 32px; }
+.form-lead-info { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.field-group { display: flex; flex-direction: column; gap: 5px; }
+.field-group.grow { flex: 1; min-width: 160px; }
+.field-label { font-size: 12px; font-weight: 500; color: var(--text-muted); }
+input[type=text], input[type=email], input[type=number], select, textarea {
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 9px 12px;
+  font-size: 14px; color: var(--text); background: var(--white); font-family: inherit;
+  transition: border-color 0.15s; outline: none; width: 100%;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--purple-mid); box-shadow: 0 0 0 3px rgba(127,119,221,0.12); }
+textarea { resize: vertical; min-height: 72px; }
+
+/* Section block */
+.section-block { margin-bottom: 40px; }
+.section-divider { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.section-tag { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+.tag-abertura { background: var(--teal-light); color: var(--teal-dark); }
+.tag-estrutura { background: var(--purple-light); color: var(--purple); }
+.tag-dor { background: var(--teal-light); color: var(--teal-dark); }
+.tag-gatilho { background: var(--amber-light); color: var(--amber-dark); }
+.tag-canal { background: var(--coral-light); color: #993C1D; }
+.tag-encerramento { background: var(--gray-100); color: var(--gray-600); }
+.section-line { flex: 1; height: 1px; background: var(--border); }
+.section-title-main { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 4px; letter-spacing: -0.3px; }
+.section-meta { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+/* Question card */
+.q-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 14px; transition: border-color 0.2s; }
+.q-card.has-answer { border-color: var(--teal); }
+.q-card.scoring-q { border-left: 3px solid var(--purple-mid); border-radius: 0 var(--radius) var(--radius) 0; }
+.q-card.scoring-q.has-answer { border-left-color: var(--teal); }
+.q-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.q-id { font-size: 10px; font-weight: 600; color: var(--text-hint); font-family: monospace; flex-shrink: 0; margin-top: 2px; }
+.q-badges { display: flex; gap: 5px; flex-wrap: wrap; }
+.q-badge { font-size: 10px; padding: 2px 6px; border-radius: 20px; }
+.badge-score { background: var(--purple-light); color: var(--purple); }
+.badge-h { background: var(--gray-100); color: var(--text-muted); }
+.q-texto { font-size: 15px; font-weight: 500; color: var(--text); line-height: 1.45; margin-bottom: 8px; }
+.q-script-toggle { font-size: 11px; color: var(--purple); cursor: pointer; margin-bottom: 10px; display: inline-flex; align-items: center; gap: 4px; }
+.q-script-toggle:hover { text-decoration: underline; }
+.q-script { font-size: 12px; color: var(--text-muted); line-height: 1.6; font-style: italic; border-left: 2px solid var(--border-strong); padding-left: 10px; margin-bottom: 12px; display: none; background: var(--gray-50); padding: 8px 12px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.q-script.visible { display: block; }
+
+/* Options */
+.options-wrap { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.option-label { font-size: 11px; font-weight: 500; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+.opt-btn { width: 100%; text-align: left; padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--gray-50); cursor: pointer; font-size: 13px; color: var(--text-muted); font-family: inherit; transition: all 0.15s; display: flex; justify-content: space-between; align-items: center; gap: 12px; line-height: 1.4; }
+.opt-btn:hover { border-color: var(--purple-mid); background: var(--purple-light); color: var(--text); }
+.opt-btn.selected { border-color: var(--teal); background: var(--teal-light); color: var(--teal-dark); }
+.opt-pts { font-size: 10px; font-weight: 600; opacity: 0.55; white-space: nowrap; font-family: monospace; }
+.opt-btn.selected .opt-pts { opacity: 0.8; }
+
+/* Open text questions */
+.q-open-note { font-size: 11px; color: var(--text-hint); margin-top: 6px; font-style: italic; }
+
+/* Encerramento / resultado */
+.result-panel { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; }
+.result-top { display: flex; align-items: center; gap: 20px; margin-bottom: 24px; flex-wrap: wrap; }
+.result-score-big { }
+.score-big-num { font-size: 56px; font-weight: 700; line-height: 1; letter-spacing: -2px; }
+.score-big-label { font-size: 12px; color: var(--text-muted); }
+.result-poc { flex: 1; min-width: 200px; }
+.poc-rec-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-hint); margin-bottom: 6px; }
+.poc-rec-box { border-radius: var(--radius-sm); padding: 12px 14px; }
+.poc-rec-box.open { background: var(--teal-light); border: 1px solid #9FE1CB; }
+.poc-rec-box.watch { background: var(--amber-light); border: 1px solid #FAC775; }
+.poc-rec-box.cold { background: var(--coral-light); border: 1px solid #F0997B; }
+.poc-rec-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.poc-rec-box.open .poc-rec-title { color: var(--teal-dark); }
+.poc-rec-box.watch .poc-rec-title { color: var(--amber-dark); }
+.poc-rec-box.cold .poc-rec-title { color: #993C1D; }
+.poc-rec-desc { font-size: 12px; line-height: 1.5; }
+.poc-rec-box.open .poc-rec-desc { color: var(--teal-dark); }
+.poc-rec-box.watch .poc-rec-desc { color: var(--amber-dark); }
+.poc-rec-box.cold .poc-rec-desc { color: #993C1D; }
+
+.dims-result { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+.dim-result-card { background: var(--gray-50); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
+.drcard-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+.drcard-val { font-size: 24px; font-weight: 600; }
+.drcard-bar { height: 5px; background: var(--border); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+.drcard-fill { height: 100%; border-radius: 3px; }
+
+.script-result { margin-bottom: 24px; }
+.script-result-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.script-result-box { background: var(--gray-50); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; font-size: 13px; color: var(--text); line-height: 1.7; font-style: italic; }
+
+.action-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn { padding: 10px 18px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; border: 1px solid var(--border-strong); background: var(--white); color: var(--text); transition: all 0.15s; }
+.btn:hover { background: var(--gray-100); }
+.btn-primary { background: var(--purple); color: #fff; border-color: var(--purple); }
+.btn-primary:hover { background: var(--purple-mid); border-color: var(--purple-mid); }
+.btn-teal { background: var(--teal); color: #fff; border-color: var(--teal); }
+.btn-teal:hover { background: var(--teal-dark); border-color: var(--teal-dark); }
+
+/* Notification */
+.notif { position: fixed; bottom: 20px; right: 20px; background: var(--text); color: #fff; border-radius: var(--radius-sm); padding: 10px 16px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 999; }
+.notif.show { opacity: 1; }
+
+/* Responsive */
+@media (max-width: 700px) {
+  .layout { flex-direction: column; }
+  .sidebar { width: 100%; height: auto; position: relative; padding: 16px; }
+  .main { padding: 20px 16px; }
+  .timeline { display: none; }
+  .dims-result { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div>
+      <div class="logo">orm<span>ind</span></div>
+      <div class="session-label">Entrevista de descoberta</div>
+    </div>
+
+    <!-- Perfil do Lead -->
+    <div class="profile-card">
+      <div class="profile-name-row">
+        <div class="avatar" id="avatar">—</div>
+        <div>
+          <div class="profile-name" id="sb-name">—</div>
+          <div class="profile-company" id="sb-company">—</div>
+        </div>
+      </div>
+
+      <!-- Score Ring -->
+      <div class="score-section">
+        <div class="ring-wrap">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="32" fill="none" stroke="#E2E0D6" stroke-width="7"/>
+            <circle cx="40" cy="40" r="32" fill="none" stroke="#7F77DD" stroke-width="7"
+              stroke-dasharray="201.06" stroke-dashoffset="201.06"
+              stroke-linecap="round" id="ring-circle" style="transition:stroke-dashoffset 0.6s ease, stroke 0.4s"/>
+          </svg>
+          <div class="ring-center">
+            <div class="ring-val" id="ring-val">0</div>
+            <div class="ring-sub">score</div>
+          </div>
+        </div>
+        <div class="score-label-main" id="score-tier-label">Respondendo...</div>
+      </div>
+
+      <!-- Dimensões -->
+      <div class="dims">
+        <div class="dim-row">
+          <div class="dim-header"><span class="dim-name">Estrutura</span><span class="dim-val" id="dv-estrutura">—</span></div>
+          <div class="dim-bar"><div class="dim-fill" id="df-estrutura" style="width:0;background:#7F77DD"></div></div>
+        </div>
+        <div class="dim-row">
+          <div class="dim-header"><span class="dim-name">Dor & visibilidade</span><span class="dim-val" id="dv-dor">—</span></div>
+          <div class="dim-bar"><div class="dim-fill" id="df-dor" style="width:0;background:#1D9E75"></div></div>
+        </div>
+        <div class="dim-row">
+          <div class="dim-header"><span class="dim-name">Gatilho</span><span class="dim-val" id="dv-gatilho">—</span></div>
+          <div class="dim-bar"><div class="dim-fill" id="df-gatilho" style="width:0;background:#D85A30"></div></div>
+        </div>
+        <div class="dim-row">
+          <div class="dim-header"><span class="dim-name">Canal</span><span class="dim-val" id="dv-canal">—</span></div>
+          <div class="dim-bar"><div class="dim-fill" id="df-canal" style="width:0;background:#EF9F27"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POC signal -->
+    <div class="poc-signal neutral" id="poc-signal-sb">
+      <div class="poc-signal-title">Aguardando respostas</div>
+      <div>Preencha o formulário para ver a recomendação.</div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-section">
+      <div class="progress-header">
+        <span>Progresso</span><span id="prog-label">0 / 15</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+
+    <!-- Timeline nav -->
+    <div class="timeline" id="timeline"></div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- Lead info header -->
+    <div class="form-header">
+      <div style="font-size:22px;font-weight:700;letter-spacing:-0.5px;margin-bottom:4px;color:var(--text)">Entrevista de Descoberta</div>
+      <div style="font-size:14px;color:var(--text-muted);margin-bottom:24px">~30 min · Governança de dados financeiros · Ormind © 2026</div>
+
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px">Identificação do lead</div>
+        <div class="form-lead-info">
+          <div class="field-group grow">
+            <label class="field-label">Nome completo</label>
+            <input type="text" id="li-nome" placeholder="João Silva" oninput="updateLeadInfo()"/>
+          </div>
+          <div class="field-group grow">
+            <label class="field-label">Empresa</label>
+            <input type="text" id="li-empresa" placeholder="Startup XYZ" oninput="updateLeadInfo()"/>
+          </div>
+        </div>
+        <div class="form-lead-info">
+          <div class="field-group grow">
+            <label class="field-label">Cargo</label>
+            <input type="text" id="li-cargo" placeholder="CEO / Head de Finanças" oninput="updateLeadInfo()"/>
+          </div>
+          <div class="field-group grow">
+            <label class="field-label">Série / Estágio</label>
+            <select id="li-serie" onchange="updateLeadInfo()">
+              <option value="">Selecione...</option>
+              <option>Pre-seed</option>
+              <option>Seed</option>
+              <option>Série A</option>
+              <option>Série B</option>
+              <option>Série C+</option>
+              <option>Bootstrapped</option>
+              <option>Outro</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-lead-info">
+          <div class="field-group grow">
+            <label class="field-label">Segmento / Setor</label>
+            <input type="text" id="li-setor" placeholder="Healthtech, Fintech, Varejo..." oninput="updateLeadInfo()"/>
+          </div>
+          <div class="field-group" style="min-width:130px">
+            <label class="field-label">Nº de funcionários</label>
+            <select id="li-porte" onchange="updateLeadInfo()">
+              <option value="">Selecione...</option>
+              <option>1–10</option>
+              <option>11–50</option>
+              <option>51–200</option>
+              <option>200+</option>
+            </select>
+          </div>
+          <div class="field-group grow">
+            <label class="field-label">Canal de origem</label>
+            <select id="li-canal" onchange="updateLeadInfo()">
+              <option value="">Selecione...</option>
+              <option>Rede quente (indicação)</option>
+              <option>LinkedIn</option>
+              <option>VC / Fundo</option>
+              <option>BPO contábil</option>
+              <option>Evento</option>
+              <option>Outro</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-lead-info">
+          <div class="field-group grow">
+            <label class="field-label">Data da entrevista</label>
+            <input type="text" id="li-data" placeholder="08/06/2026" oninput="updateLeadInfo()"/>
+          </div>
+          <div class="field-group grow">
+            <label class="field-label">Entrevistador</label>
+            <input type="text" id="li-entrevistador" placeholder="Guilherme / Vinícius" oninput="updateLeadInfo()"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTIONS rendered by JS -->
+    <div id="sections-container"></div>
+
+    <!-- RESULTADO -->
+    <div id="result-section" style="display:none">
+      <div class="section-divider"><span class="section-tag tag-encerramento">Resultado</span><div class="section-line"></div></div>
+      <div class="section-title-main">Perfil do lead</div>
+      <div class="section-meta">Score calculado com base nas respostas. Use o script de encerramento sugerido.</div>
+      <div class="result-panel" id="result-panel"></div>
+    </div>
+
+    <div style="margin-top:32px;display:flex;gap:12px;justify-content:flex-end;padding-bottom:60px">
+      <button class="btn btn-teal" onclick="exportCSV()">⬇ Exportar CSV desta entrevista</button>
+      <button class="btn btn-primary" onclick="newInterview()">+ Nova entrevista</button>
+    </div>
+  </main>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+const SECTIONS = [
+  {
+    id: 'abertura', tag: 'abertura', label: 'Abertura',
+    title: 'Abertura e contexto',
+    meta: '~5 min · sem pontuação · estabelece rapport e entende o contexto',
+    questions: [
+      {
+        id:'A1', scoring:false, hipotese:null,
+        texto:'Como vocês estão estruturados hoje na área financeira?',
+        script:'Estamos conversando com empresas em estágios parecidos com o de vocês para entender como funciona o dia a dia de finanças na prática. Nada de pitch por enquanto — quero só ouvir. Me conta como é a estrutura de vocês.',
+        type:'open'
+      },
+      {
+        id:'A2', scoring:false, hipotese:null,
+        texto:'Quem é responsável pelos números no dia a dia — você mesmo, um time interno, CFO dedicado, BPO?',
+        script:'E quando você precisa tomar uma decisão financeira rápida — tipo avaliar se o caixa aguenta um novo contrato — quem você aciona? Isso vai por você ou passa por alguém do time?',
+        type:'open'
+      },
+      {
+        id:'A3', scoring:false, hipotese:null,
+        texto:'Que ferramentas vocês usam hoje para gestão financeira? (ERP, planilhas, BI...)',
+        script:'Sem precisar ser técnico — só me conta o que o time usa no dia a dia para olhar para os números.',
+        type:'open'
+      }
+    ]
+  },
+  {
+    id: 'estrutura', tag: 'estrutura', label: 'Estrutura',
+    title: 'Dimensão 1 — Estrutura e responsabilidade',
+    meta: '~7 min · Hipóteses H01 e H02 · peso 25% no score de imaturidade',
+    questions: [
+      {
+        id:'P1', scoring:true, hipotese:'H01', dim:'estrutura',
+        texto:'Se o seu analista ou responsável por finanças saísse amanhã, o processo financeiro continuaria funcionando normalmente?',
+        script:'Uma coisa que a gente vê muito em empresas que cresceram rápido é que o processo financeiro fica na cabeça de uma pessoa. Se essa pessoa sai, o processo para. Isso acontece aí?',
+        type:'options',
+        opcoes:[
+          {t:'Sim — temos processo documentado, qualquer pessoa consegue operar', pts:0},
+          {t:'Parcialmente — há alguma documentação mas depende bastante de quem está', pts:2},
+          {t:'Com dificuldade — levaria semanas para outra pessoa assumir', pts:3},
+          {t:'Honestamente pararia — está tudo na cabeça de uma pessoa', pts:5}
+        ]
+      },
+      {
+        id:'P2', scoring:true, hipotese:'H02', dim:'estrutura',
+        texto:'Estimando: de cada 10 horas dedicadas a finanças por semana, quantas são gastas extraindo e consolidando dados versus analisando e decidindo?',
+        script:'Sem precisar ser exato. Me dá uma noção: o time passa mais tempo montando relatório ou pensando no que fazer com os dados?',
+        type:'options',
+        opcoes:[
+          {t:'Menos de 20% é operacional — a maior parte é análise e decisão', pts:0},
+          {t:'Uns 30% operacional / 70% análise', pts:1},
+          {t:'50/50 — metade para montar, metade para analisar', pts:3},
+          {t:'Mais de 70% é extração, consolidação e montagem de relatório', pts:5}
+        ]
+      },
+      {
+        id:'P3', scoring:true, hipotese:'H01', dim:'estrutura',
+        texto:'Existe alguém com papel formal de dono de cada dado financeiro — quem é responsável por cada número chegar correto?',
+        script:'Tipo: tem alguém cujo trabalho é garantir que o dado de receita está certo? Ou isso fica difuso entre o time?',
+        type:'options',
+        opcoes:[
+          {t:'Sim — cada dado tem um dono claro e um processo de validação', pts:0},
+          {t:'Mais ou menos — tem responsáveis mas sem processo formalizado', pts:2},
+          {t:'Não — cada um puxa o dado do jeito que consegue', pts:4},
+          {t:'Não temos equipe financeira estruturada ainda', pts:5}
+        ]
+      }
+    ]
+  },
+  {
+    id: 'dor', tag: 'dor', label: 'Dor',
+    title: 'Dimensão 2 — Dor e visibilidade',
+    meta: '~8 min · Hipóteses H03, H05 e H06 · peso 35% no score de imaturidade',
+    questions: [
+      {
+        id:'D1', scoring:true, hipotese:'H03', dim:'dor',
+        texto:'Quantos dias úteis leva o fechamento mensal — do dia 1 até ter o DRE do mês anterior fechado e confiável para tomar decisão?',
+        script:'Do dia 1 do mês novo até vocês terem um DRE que confiam para mostrar para o board ou para vocês mesmos decidirem — quanto tempo leva?',
+        type:'options',
+        opcoes:[
+          {t:'Até 3 dias úteis', pts:0},
+          {t:'Entre 3 e 5 dias úteis', pts:1},
+          {t:'Entre 5 e 10 dias úteis', pts:3},
+          {t:'Entre 10 e 15 dias úteis', pts:4},
+          {t:'Mais de 15 dias úteis', pts:5}
+        ]
+      },
+      {
+        id:'D2', scoring:true, hipotese:'H06', dim:'dor',
+        texto:'Já aconteceu de dois relatórios diferentes trazerem números divergentes para a mesma métrica?',
+        script:'Por exemplo: o DRE diz uma receita, a planilha do gestor diz outra, e vocês ficam sem saber qual confiar. Isso rolou?',
+        type:'options',
+        opcoes:[
+          {t:'Nunca — temos uma fonte única de verdade bem estabelecida', pts:0},
+          {t:'Raramente — acontece mas resolvemos rápido', pts:1},
+          {t:'Às vezes — e quando acontece gera confusão e retrabalho', pts:3},
+          {t:'Com frequência — é um problema real e recorrente', pts:5}
+        ]
+      },
+      {
+        id:'D3', scoring:true, hipotese:'H05', dim:'dor',
+        texto:'Quando você pensa no maior problema financeiro da empresa hoje, qual das opções mais se aproxima do que vem à sua cabeça?',
+        script:'Pode ser qualquer coisa — não precisa ser técnico. Qual aspecto financeiro mais te incomoda hoje?',
+        type:'options',
+        opcoes:[
+          {t:'Não consigo confiar nos dados que tenho — nunca sei se o número está certo', pts:5},
+          {t:'Demora demais para fechar e ter visibilidade — quando tenho os dados, já é tarde', pts:4},
+          {t:'O ERP/sistema é ruim ou difícil de usar — a ferramenta nos atrapalha', pts:2},
+          {t:'Falta gente no time — o problema é de capacidade, não de processo', pts:2},
+          {t:'Não consigo fazer previsões confiáveis — só sei o que aconteceu, não o que vai acontecer', pts:3},
+          {t:'Não vejo problemas graves — nosso financeiro está bem', pts:0}
+        ]
+      },
+      {
+        id:'D4', scoring:true, hipotese:'H03', dim:'dor',
+        texto:'Já perdeu uma reunião, oportunidade ou tomou uma decisão errada por não ter os dados financeiros prontos a tempo?',
+        script:'Pode ser uma reunião de board mal preparada, uma negociação com fornecedor sem os números certos, ou uma decisão de investimento tomada no escuro.',
+        type:'options',
+        opcoes:[
+          {t:'Não, sempre conseguimos ter o que precisamos a tempo', pts:0},
+          {t:'Uma ou duas vezes — foi pontual', pts:2},
+          {t:'Sim, isso acontece com alguma frequência', pts:4},
+          {t:'Sim, e já gerou custo real — financeiro ou de reputação', pts:5}
+        ]
+      }
+    ]
+  },
+  {
+    id: 'gatilho', tag: 'gatilho', label: 'Gatilho',
+    title: 'Dimensão 3 — Gatilho e urgência',
+    meta: '~7 min · Hipóteses H04, H09 e H10 · peso 30% no score de imaturidade',
+    questions: [
+      {
+        id:'G1', scoring:true, hipotese:'H04+H09', dim:'gatilho',
+        texto:'Já passaram por algum momento crítico em que precisaram de dados financeiros rápido e não conseguiram extrair a tempo?',
+        script:'Pode ter sido uma conversa com investidor, parceiro pedindo dados, ou um momento de aperto de caixa. Aconteceu de precisar de informação financeira de forma urgente e não ter?',
+        type:'options',
+        opcoes:[
+          {t:'Não — sempre conseguimos ter os dados quando precisamos', pts:0},
+          {t:'Uma vez — mas foi pontual e resolvemos', pts:1},
+          {t:'Sim — aconteceu em captação ou due diligence e foi muito corrido', pts:4},
+          {t:'Sim — em crise de caixa e o impacto foi real: tomamos decisão errada ou atrasamos algo importante', pts:5}
+        ]
+      },
+      {
+        id:'G2', scoring:true, hipotese:'H10', dim:'gatilho',
+        texto:'Pensando em uma eventual próxima captação ou processo de M&A — se um investidor pedisse uma due diligence financeira amanhã, em quanto tempo vocês estariam prontos?',
+        script:'Sem pressão de dar a resposta certa. Só quero entender o estado atual. Se chegasse uma solicitação de due diligence financeira hoje, qual seria o cenário?',
+        type:'options',
+        opcoes:[
+          {t:'Estamos prontos agora — dados organizados, auditáveis e acessíveis', pts:0},
+          {t:'Em 2 a 4 semanas — precisaria de alguma organização', pts:2},
+          {t:'Em 1 a 2 meses — tem bastante coisa para arrumar', pts:3},
+          {t:'Mais de 3 meses — ou seria muita correria e improviso', pts:5}
+        ]
+      },
+      {
+        id:'G3', scoring:true, hipotese:'H09', dim:'gatilho',
+        texto:'Já tiveram momento de aperto de caixa onde a falta de visibilidade financeira piorou a situação ou atrasou a tomada de decisão?',
+        script:'Não precisa entrar em detalhes delicados. Só quero entender se a falta de dado em tempo real já agravou uma situação difícil para vocês.',
+        type:'options',
+        opcoes:[
+          {t:'Não — nunca passamos por aperto de caixa significativo', pts:0},
+          {t:'Passamos por aperto mas tínhamos boa visibilidade — conseguimos reagir', pts:1},
+          {t:'Passamos por aperto e a falta de visibilidade atrasou a decisão', pts:4},
+          {t:'Sim — a falta de dado piorou diretamente a situação', pts:5}
+        ]
+      }
+    ]
+  },
+  {
+    id: 'canal', tag: 'canal', label: 'Canal',
+    title: 'Dimensão 4 — Canal e relacionamento',
+    meta: '~5 min · Hipóteses H07, H08 e H11 · dados qualitativos para estratégia de abordagem',
+    questions: [
+      {
+        id:'C1', scoring:false, hipotese:'H08', dim:'canal',
+        texto:'Se o fundo que te investe ou um mentor de confiança recomendasse um parceiro especializado em governança financeira, isso teria peso na sua decisão?',
+        script:'Só para entender como vocês costumam tomar esse tipo de decisão de contratar um fornecedor novo.',
+        type:'options',
+        opcoes:[
+          {t:'Sim — indicação de fonte confiável tem muito peso', pts:0},
+          {t:'Teria peso mas avaliaria como qualquer fornecedor', pts:0},
+          {t:'Pouco peso — prefiro partir de busca própria', pts:0},
+          {t:'Não temos fundo investidor ainda', pts:0}
+        ]
+      },
+      {
+        id:'C2', scoring:false, hipotese:'H11', dim:'canal',
+        texto:'Se uma solução fosse cobrada apenas sobre os resultados gerados — por exemplo, uma percentagem da economia ou redução de custos encontrada — o que tornaria esse modelo confiável para você?',
+        script:'Mais filosófica: se você só pagasse pelo que a gente entregasse de valor real e mensurável, o que precisaria ser verdade para você se sentir confortável com isso? O que poderia dar errado?',
+        type:'open'
+      },
+      {
+        id:'C3', scoring:false, hipotese:'H07', dim:'canal',
+        texto:'Há alguma iniciativa planejada nos próximos 6 meses que tornaria mais urgente ter os dados financeiros mais organizados? (captação, auditoria, expansão, novo sócio...)',
+        script:'Não precisa entrar em detalhe. Só quero entender se tem algum evento no radar que faria esse tema ganhar prioridade.',
+        type:'open'
+      }
+    ]
+  },
+  {
+    id: 'encerramento', tag: 'encerramento', label: 'Encerramento',
+    title: 'Encerramento e notas finais',
+    meta: '~3 min · observações livres do entrevistador',
+    questions: [
+      {
+        id:'E1', scoring:false, hipotese:null,
+        texto:'Impressões gerais do entrevistador sobre o lead',
+        script:null,
+        type:'open',
+        placeholder:'Nível de abertura, linguagem corporal, tópicos que geraram mais reação, observações sobre fit...'
+      },
+      {
+        id:'E2', scoring:false, hipotese:null,
+        texto:'O lead mencionou outros desafios ou contextos relevantes que não entraram nas perguntas?',
+        script:null,
+        type:'open',
+        placeholder:'Qualquer informação adicional que pode ser útil para a proposta ou follow-up...'
+      }
+    ]
+  }
+];
+
+const SCORE_WEIGHTS = { estrutura:0.25, dor:0.35, gatilho:0.30, canal:0.10 };
+const MAX_BY_DIM = { estrutura:14, dor:19, gatilho:14, canal:0 };
+const TOTAL_Q = SECTIONS.reduce((a,s)=>a+s.questions.length,0);
+
+let answers = {};
+let openAnswers = {};
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+function init() {
+  buildTimeline();
+  buildSections();
+  updateProgress();
+}
+
+function buildTimeline() {
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = '';
+  SECTIONS.forEach(sec => {
+    const label = document.createElement('div');
+    label.className = 'tl-section-label';
+    label.textContent = sec.label;
+    tl.appendChild(label);
+    sec.questions.forEach(q => {
+      const item = document.createElement('div');
+      item.className = 'tl-item';
+      item.id = 'tl-' + q.id;
+      item.innerHTML = `<div class="tl-dot"></div><div class="tl-text">${q.texto.substring(0,45)}${q.texto.length>45?'…':''}</div>`;
+      item.onclick = () => scrollToQ(q.id);
+      tl.appendChild(item);
+    });
+  });
+}
+
+function buildSections() {
+  const container = document.getElementById('sections-container');
+  container.innerHTML = '';
+  SECTIONS.forEach(sec => {
+    const sd = document.createElement('div');
+    sd.className = 'section-block';
+    sd.id = 'section-' + sec.id;
+    let html = `<div class="section-divider"><span class="section-tag tag-${sec.tag}">${sec.tag}</span><div class="section-line"></div></div>
+      <div class="section-title-main">${sec.title}</div>
+      <div class="section-meta">${sec.meta}</div>`;
+    sec.questions.forEach(q => {
+      html += buildQCard(q);
+    });
+    sd.innerHTML = html;
+    container.appendChild(sd);
+  });
+  // attach option listeners
+  document.querySelectorAll('.opt-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const qid = this.dataset.qid;
+      const pts = parseInt(this.dataset.pts);
+      const idx = parseInt(this.dataset.idx);
+      selectOpt(qid, pts, idx);
+    });
+  });
+  // open text listeners
+  document.querySelectorAll('.open-ta').forEach(ta => {
+    ta.addEventListener('input', function() {
+      openAnswers[this.dataset.qid] = this.value;
+      updateTimeline(this.dataset.qid);
+      updateProgress();
+    });
+  });
+}
+
+function buildQCard(q) {
+  const isSco = q.scoring;
+  const scriptHtml = q.script ? `
+    <div class="q-script-toggle" onclick="toggleScript('${q.id}')">▸ Ver sugestão de fala</div>
+    <div class="q-script" id="script-${q.id}">${q.script}</div>` : '';
+
+  let bodyHtml = '';
+  if (q.type === 'options') {
+    bodyHtml = `<div class="option-label">Resposta do lead</div><div class="options-wrap" id="opts-${q.id}">`;
+    q.opcoes.forEach((op,i) => {
+      bodyHtml += `<button class="opt-btn" data-qid="${q.id}" data-pts="${op.pts}" data-idx="${i}">${op.t}<span class="opt-pts">+${op.pts}pts</span></button>`;
+    });
+    bodyHtml += `</div>`;
+  } else {
+    bodyHtml = `<textarea class="open-ta" data-qid="${q.id}" placeholder="${q.placeholder||'Anote a resposta do lead aqui...'}" rows="3"></textarea>
+      <div class="q-open-note">Pergunta aberta — não impacta o score</div>`;
+  }
+
+  const badgesHtml = [
+    isSco ? `<span class="q-badge badge-score">pontua</span>` : '',
+    q.hipotese ? `<span class="q-badge badge-h">${q.hipotese}</span>` : ''
+  ].filter(Boolean).join('');
+
+  return `<div class="q-card${isSco?' scoring-q':''}" id="qcard-${q.id}">
+    <div class="q-top">
+      <div style="flex:1">
+        <div class="q-badges" style="margin-bottom:6px">${badgesHtml}</div>
+        <div class="q-texto">${q.texto}</div>
+      </div>
+      <div class="q-id">${q.id}</div>
+    </div>
+    ${scriptHtml}
+    ${bodyHtml}
+  </div>`;
+}
+
+function toggleScript(qid) {
+  const el = document.getElementById('script-' + qid);
+  const tog = el.previousElementSibling;
+  const vis = el.classList.toggle('visible');
+  tog.textContent = vis ? '▾ Ocultar sugestão de fala' : '▸ Ver sugestão de fala';
+}
+
+function scrollToQ(qid) {
+  const el = document.getElementById('qcard-' + qid);
+  if (el) el.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+// ─── ANSWERS ─────────────────────────────────────────────────────────────────
+function selectOpt(qid, pts, idx) {
+  answers[qid] = {pts, idx};
+  // update buttons
+  const container = document.getElementById('opts-' + qid);
+  container.querySelectorAll('.opt-btn').forEach((b,i) => {
+    b.classList.toggle('selected', i === idx);
+  });
+  // mark card
+  const card = document.getElementById('qcard-' + qid);
+  card.classList.add('has-answer');
+  updateTimeline(qid);
+  updateScore();
+  updateProgress();
+}
+
+function updateTimeline(qid) {
+  const tl = document.getElementById('tl-' + qid);
+  if (!tl) return;
+  const hasAns = answers[qid] !== undefined || (openAnswers[qid] && openAnswers[qid].trim().length > 0);
+  tl.classList.toggle('answered', hasAns);
+  tl.classList.remove('current');
+  if (hasAns) tl.classList.add('answered');
+}
+
+// ─── SCORE ───────────────────────────────────────────────────────────────────
+function getDimScores() {
+  const raw = {estrutura:0, dor:0, gatilho:0, canal:0};
+  SECTIONS.forEach(sec => {
+    sec.questions.forEach(q => {
+      if (q.scoring && answers[q.id] !== undefined) {
+        raw[q.dim] = (raw[q.dim]||0) + answers[q.id].pts;
+      }
+    });
+  });
+  const norm = {};
+  Object.keys(raw).forEach(d => {
+    norm[d] = MAX_BY_DIM[d] > 0 ? Math.min(Math.round(raw[d] / MAX_BY_DIM[d] * 100), 100) : 0;
+  });
+  return norm;
+}
+
+function calcTotal(norm) {
+  return Math.round(
+    norm.estrutura * SCORE_WEIGHTS.estrutura +
+    norm.dor * SCORE_WEIGHTS.dor +
+    norm.gatilho * SCORE_WEIGHTS.gatilho
+  );
+}
+
+function getPOC(score) {
+  if (score >= 65) return {
+    tier:'open', title:'Alta abertura para POC',
+    desc:'Imaturidade significativa e urgência latente. Ofereça o diagnóstico diretamente.',
+    script:'A Ormind está fazendo um diagnóstico de governança de dados financeiros com um número limitado de empresas — sem custo. Vocês nos dão acesso aos dados financeiros e a gente entrega um relatório mostrando onde estão as maiores ineficiências e qual seria o caminho para organizar isso. Sem compromisso de contratar nada depois. Faz sentido a gente agendar isso?',
+    color:'#1D9E75'
+  };
+  if (score >= 35) return {
+    tier:'watch', title:'Abertura condicional',
+    desc:'Dor presente mas urgência ainda não madura. Posicione o diagnóstico como gerador de clareza.',
+    script:'A Ormind está fazendo um diagnóstico com algumas empresas para mapear onde estão os gargalos de dados financeiros. É um exercício que costuma abrir os olhos mesmo para quem acha que está razoavelmente bem estruturado. Você toparia fazer isso com a gente? Pede pouco tempo e entregamos um relatório estruturado.',
+    color:'#EF9F27'
+  };
+  return {
+    tier:'cold', title:'Manter relacionamento',
+    desc:'Processos relativamente maduros ou dor não explícita. Voltar no próximo gatilho.',
+    script:'Ótimo papo. Vou te mandar um resumo do que a gente está construindo — talvez faça mais sentido num momento diferente. Posso te acionar quando tivermos algo mais alinhado com o seu momento?',
+    color:'#D85A30'
+  };
+}
+
+function updateScore() {
+  const norm = getDimScores();
+  const total = calcTotal(norm);
+  const poc = getPOC(total);
+
+  // ring
+  const circle = document.getElementById('ring-circle');
+  const circ = 201.06;
+  circle.style.strokeDashoffset = circ - (total / 100 * circ);
+  circle.style.stroke = poc.color;
+  document.getElementById('ring-val').textContent = total;
+  document.getElementById('score-tier-label').textContent = poc.title;
+
+  // dims
+  ['estrutura','dor','gatilho','canal'].forEach(d => {
+    const v = norm[d];
+    document.getElementById('dv-' + d).textContent = v + '%';
+    document.getElementById('df-' + d).style.width = v + '%';
+  });
+
+  // POC signal sidebar
+  const sb = document.getElementById('poc-signal-sb');
+  sb.className = 'poc-signal ' + poc.tier;
+  sb.innerHTML = `<div class="poc-signal-title">${poc.title}</div><div>${poc.desc}</div>`;
+
+  // result panel
+  const rp = document.getElementById('result-panel');
+  const answered = Object.keys(answers).length;
+  if (answered > 0) {
+    document.getElementById('result-section').style.display = 'block';
+    rp.innerHTML = `
+      <div class="result-top">
+        <div class="result-score-big">
+          <div class="score-big-num" style="color:${poc.color}">${total}</div>
+          <div class="score-big-label">Índice de imaturidade /100</div>
+        </div>
+        <div class="result-poc">
+          <div class="poc-rec-label">Recomendação de abordagem</div>
+          <div class="poc-rec-box ${poc.tier}">
+            <div class="poc-rec-title">${poc.title}</div>
+            <div class="poc-rec-desc">${poc.desc}</div>
+          </div>
+        </div>
+      </div>
+      <div class="dims-result">
+        <div class="dim-result-card">
+          <div class="drcard-label">Estrutura & responsabilidade</div>
+          <div class="drcard-val" style="color:#534AB7">${norm.estrutura}<span style="font-size:14px;color:var(--text-muted)">/100</span></div>
+          <div class="drcard-bar"><div class="drcard-fill" style="width:${norm.estrutura}%;background:#7F77DD"></div></div>
+        </div>
+        <div class="dim-result-card">
+          <div class="drcard-label">Dor & visibilidade</div>
+          <div class="drcard-val" style="color:#1D9E75">${norm.dor}<span style="font-size:14px;color:var(--text-muted)">/100</span></div>
+          <div class="drcard-bar"><div class="drcard-fill" style="width:${norm.dor}%;background:#1D9E75"></div></div>
+        </div>
+        <div class="dim-result-card">
+          <div class="drcard-label">Gatilho & urgência</div>
+          <div class="drcard-val" style="color:#D85A30">${norm.gatilho}<span style="font-size:14px;color:var(--text-muted)">/100</span></div>
+          <div class="drcard-bar"><div class="drcard-fill" style="width:${norm.gatilho}%;background:#D85A30"></div></div>
+        </div>
+      </div>
+      <div class="script-result">
+        <div class="script-result-label">Script sugerido para encerramento</div>
+        <div class="script-result-box">"${poc.script}"</div>
+      </div>
+    `;
+  }
+}
+
+function updateProgress() {
+  const total = TOTAL_Q;
+  let done = 0;
+  SECTIONS.forEach(sec => {
+    sec.questions.forEach(q => {
+      if (q.type==='options' && answers[q.id]!==undefined) done++;
+      else if (q.type==='open' && openAnswers[q.id] && openAnswers[q.id].trim().length > 3) done++;
+    });
+  });
+  const pct = Math.round(done / total * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = done + ' / ' + total;
+}
+
+function updateLeadInfo() {
+  const nome = document.getElementById('li-nome').value.trim();
+  const empresa = document.getElementById('li-empresa').value.trim();
+  document.getElementById('sb-name').textContent = nome || '—';
+  document.getElementById('sb-company').textContent = empresa || '—';
+  const initials = (nome.split(' ').map(w=>w[0]).join('').substring(0,2)||'—').toUpperCase();
+  document.getElementById('avatar').textContent = initials;
+  document.getElementById('session-label')?.remove();
+}
+
+// ─── EXPORT CSV ──────────────────────────────────────────────────────────────
+function getLeadInfo() {
+  return {
+    nome: document.getElementById('li-nome').value.trim(),
+    empresa: document.getElementById('li-empresa').value.trim(),
+    cargo: document.getElementById('li-cargo').value.trim(),
+    serie: document.getElementById('li-serie').value,
+    setor: document.getElementById('li-setor').value.trim(),
+    porte: document.getElementById('li-porte').value,
+    canal: document.getElementById('li-canal').value,
+    data: document.getElementById('li-data').value.trim(),
+    entrevistador: document.getElementById('li-entrevistador').value.trim()
+  };
+}
+
+function exportCSV() {
+  const lead = getLeadInfo();
+  const norm = getDimScores();
+  const total = calcTotal(norm);
+  const poc = getPOC(total);
+  const ts = new Date().toISOString();
+
+  // build rows: one row per question answered
+  const rows = [];
+  const baseFields = [lead.nome, lead.empresa, lead.cargo, lead.serie, lead.setor, lead.porte, lead.canal, lead.data, lead.entrevistador, ts];
+
+  SECTIONS.forEach(sec => {
+    sec.questions.forEach(q => {
+      let resposta = '';
+      let pontos = '';
+      if (q.type === 'options' && answers[q.id] !== undefined) {
+        const idx = answers[q.id].idx;
+        resposta = q.opcoes[idx].t;
+        pontos = answers[q.id].pts;
+      } else if (q.type === 'open') {
+        resposta = openAnswers[q.id] || '';
+        pontos = 'N/A';
+      }
+      rows.push([
+        ...baseFields,
+        sec.label, q.id, q.scoring ? 'Sim' : 'Não', q.hipotese || '', q.dim || '',
+        csvEsc(q.texto), csvEsc(resposta), pontos,
+        total, norm.estrutura, norm.dor, norm.gatilho, poc.title
+      ]);
+    });
+  });
+
+  const header = [
+    'Nome','Empresa','Cargo','Série','Setor','Porte','Canal','Data','Entrevistador','Timestamp',
+    'Seção','QID','Pontua','Hipótese','Dimensão',
+    'Pergunta','Resposta','Pontos',
+    'Score Total','Dim Estrutura','Dim Dor','Dim Gatilho','Recomendação POC'
+  ];
+
+  const csv = [header, ...rows].map(r => r.map(v => csvEsc(v)).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ormind-entrevista-${(lead.empresa||'lead').replace(/\s+/g,'-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showNotif('CSV exportado com sucesso!');
+}
+
+function csvEsc(v) {
+  const s = String(v ?? '');
+  if (s.includes(',') || s.includes('"') || s.includes('\n')) return '"' + s.replace(/"/g,'""') + '"';
+  return s;
+}
+
+function newInterview() {
+  if (!confirm('Iniciar nova entrevista? Os dados atuais serão perdidos (exporte o CSV antes).')) return;
+  answers = {};
+  openAnswers = {};
+  ['li-nome','li-empresa','li-cargo','li-setor','li-entrevistador','li-data'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  ['li-serie','li-porte','li-canal'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.open-ta').forEach(ta => ta.value = '');
+  document.querySelectorAll('.q-card').forEach(c => c.classList.remove('has-answer'));
+  document.getElementById('result-section').style.display = 'none';
+  answers = {}; openAnswers = {};
+  updateScore();
+  updateProgress();
+  buildTimeline();
+  updateLeadInfo();
+  window.scrollTo({top:0,behavior:'smooth'});
+  showNotif('Nova entrevista iniciada.');
+}
+
+function showNotif(msg) {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 2500);
+}
+
+init();
+</script>
+</body>
+</html>
