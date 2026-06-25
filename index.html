@@ -813,19 +813,9 @@ function submitSurvey() {
   var cargo = document.getElementById('resp-cargo').value.trim();
   if (!nome || !empresa || !cargo) { showNotif(t('notifRequired')); return; }
   showNotif(t('notifSending'));
-  var email = document.getElementById('resp-email').value.trim();
-  var lines = [];
-  lines.push('=== ORMIND — Pesquisa de Descoberta ===');
-  lines.push('');
-  lines.push('Respondente: ' + nome);
-  lines.push('Empresa: ' + empresa);
-  lines.push('Cargo: ' + cargo);
-  if (email) lines.push('E-mail: ' + email);
-  lines.push('Idioma: ' + currentLang.toUpperCase());
-  lines.push('');
 
+  var responses = [];
   SECTIONS.forEach(function(sec) {
-    lines.push('--- ' + t(sec.i18nKey) + ' ---');
     sec.questions.forEach(function(q) {
       var resposta = '';
       if (q.type === 'options' && answers[q.id] !== undefined) {
@@ -840,26 +830,38 @@ function submitSurvey() {
       else if (q.type === 'open') resposta = openAnswers[q.id] || '';
       else if (q.type === 'cta' && answers[q.id] !== undefined) resposta = answers[q.id];
       var comment = openAnswers[q.id + '_comment'] || '';
-      lines.push(q.id + ') ' + resposta);
-      if (comment) lines.push('   Obs: ' + comment);
+      responses.push({ sec: t(sec.i18nKey), id: q.id, pergunta: t(q.i18nKey), resposta: resposta, comment: comment });
     });
-    lines.push('');
   });
 
-  var body = lines.join('\r\n');
-  var subject = encodeURIComponent('[Ormind] Respostas - ' + nome + ' - ' + empresa);
-  var mailtoHref = 'mailto:guilherme@ormind.com.br' + (email ? '?bcc=' + encodeURIComponent(email) : '?')
-    + '&subject=' + subject
-    + '&body=' + encodeURIComponent(body);
+  var data = {
+    nome: nome,
+    empresa: empresa,
+    cargo: cargo,
+    email: document.getElementById('resp-email').value.trim(),
+    lang: currentLang,
+    responses: responses
+  };
 
-  document.getElementById('sections-container').style.display = 'none';
-  document.getElementById('action-row').style.display = 'none';
-  document.getElementById('success-banner').classList.add('show');
-  window.scrollTo({top:0,behavior:'smooth'});
-
-  var link = document.createElement('a');
-  link.href = mailtoHref;
-  link.click();
+  fetch('/api/send-email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(result) {
+    if (result.success) {
+      document.getElementById('sections-container').style.display = 'none';
+      document.getElementById('action-row').style.display = 'none';
+      document.getElementById('success-banner').classList.add('show');
+      window.scrollTo({top:0,behavior:'smooth'});
+    } else {
+      showNotif('Erro ao enviar. Tente novamente.');
+    }
+  })
+  .catch(function() {
+    showNotif('Erro de conexão. Tente novamente.');
+  });
 }
 
 function showNotif(msg) {
